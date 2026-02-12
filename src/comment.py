@@ -352,6 +352,15 @@ def main():
         print(f"正在执行评论任务: {name}")
         print('='*50)
 
+        # 验证 Cookie 有效性
+        from utils import validate_cookie
+        is_valid, error_msg = validate_cookie(cookie_str)
+        if not is_valid:
+            print(f"[ERROR] Cookie 无效: {error_msg}")
+            print(f"请更新 {name} 的 Cookie")
+            all_success = False
+            continue
+
         for attempt in range(1, MAX_RETRIES + 1):
             print(f"\n尝试第 {attempt}/{MAX_RETRIES} 次...")
             try:

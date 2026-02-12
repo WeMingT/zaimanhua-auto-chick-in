@@ -198,7 +198,15 @@ def run_auto_read():
         print(f"\n{'='*60}")
         print(f"账号: {label}")
         print(f"{'='*60}")
-        
+
+        # 验证 Cookie 有效性
+        from utils import validate_cookie
+        is_valid, error_msg = validate_cookie(cookie_str)
+        if not is_valid:
+            print(f"[ERROR] Cookie 无效: {error_msg}")
+            print(f"请更新 {label} 的 Cookie")
+            continue
+
         reader = ZaimanhuaAppReader(cookie_str, debug=args.debug)
         token = reader.get_token()
         if not token:
@@ -270,4 +278,5 @@ def run_auto_read():
     return True
 
 if __name__ == "__main__":
-    run_auto_read()
+    success = run_auto_read()
+    exit(0 if success else 1)

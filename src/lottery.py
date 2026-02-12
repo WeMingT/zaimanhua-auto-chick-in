@@ -4,7 +4,7 @@ import time
 import os
 import requests
 
-from utils import extract_user_info_from_cookies, get_all_cookies, parse_cookies
+from utils import extract_user_info_from_cookies, get_all_cookies, parse_cookies, validate_cookie
 from playwright.sync_api import sync_playwright
 
 # 配置
@@ -282,18 +282,28 @@ def main():
     cookies_list = get_all_cookies()
     if not cookies_list:
         print("错误: 请设置 ZAIMANHUA_COOKIE 环境变量")
-        return
+        return False
 
+    all_success = True
     for account_name, cookie_str in cookies_list:
         print(f"\n{'='*50}")
         print(f"账号: {account_name}")
         print('='*50)
+
+        # 验证 Cookie 有效性
+        is_valid, error_msg = validate_cookie(cookie_str)
+        if not is_valid:
+            print(f"  [ERROR] Cookie 无效: {error_msg}")
+            print(f"  请更新 {account_name} 的 Cookie")
+            all_success = False
+            continue
 
         user_info = extract_user_info_from_cookies(cookie_str)
         token = user_info.get('token', '')
 
         if not token:
             print("  错误: Cookie 中未找到 token")
+            all_success = False
             continue
 
         print(f"  用户: {user_info.get('nickname', user_info.get('username', '未知'))}")
@@ -301,6 +311,9 @@ def main():
         # 使用浏览器模式执行（可以点击任务按钮）
         run_lottery_with_browser(cookie_str, token)
 
+    return all_success
+
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    exit(0 if success else 1)

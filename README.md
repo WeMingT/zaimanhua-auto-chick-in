@@ -15,6 +15,8 @@
 
 其他特性：
 - 支持多账号（最多 5 个）
+- 日志显示账号真实用户名，便于识别
+- Cookie 失效自动检测，workflow 失败触发邮件通知
 - 所有任务支持手动触发
 - 智能跳过无效/付费章节
 - 避免重复评论同一漫画
@@ -138,8 +140,9 @@
 
 ## 注意事项
 
-- **Cookie 有效期**：Cookie 可能会过期，建议每月检查一次
+- **Cookie 有效期**：Cookie 可能会过期，失效时 workflow 会自动失败并触发邮件通知，届时请及时更新
 - **GitHub Actions 限制**：免费账户每月 2000 分钟，阅读任务约需 15 分钟/次
+- **GitHub 通知设置**：确保在 GitHub Settings > Notifications 中开启 Actions 失败通知
 - **隐私安全**：Cookie 存储在 GitHub Secrets 中，不会公开显示
 
 ## 技术栈

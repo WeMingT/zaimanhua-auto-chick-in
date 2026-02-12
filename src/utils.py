@@ -101,6 +101,37 @@ def init_localstorage(page, cookie_str):
     return True
 
 
+def _make_account_label(default_label, cookie_str):
+    """从 Cookie 中提取用户名，生成带用户名的账号标签"""
+    try:
+        user_info = extract_user_info_from_cookies(cookie_str)
+        if isinstance(user_info, dict):
+            name = user_info.get('nickname') or user_info.get('username')
+            if name:
+                return f"{default_label} ({name})"
+    except Exception:
+        pass
+    return default_label
+
+
+def validate_cookie(cookie_str):
+    """验证 Cookie 是否有效，返回 (is_valid, error_msg)"""
+    user_info = extract_user_info_from_cookies(cookie_str)
+    token = user_info.get('token') if isinstance(user_info, dict) else None
+
+    if not token:
+        return False, "Cookie 中未找到 token"
+
+    task_result = get_task_list(token)
+    if task_result is None:
+        return False, "无法连接到服务器"
+    if task_result.get('errno') != 0:
+        errmsg = task_result.get('errmsg', '未知错误')
+        return False, f"API 返回错误: {errmsg}"
+
+    return True, None
+
+
 def get_all_cookies():
     """获取所有账号的 Cookie"""
     load_dotenv()  # 自动加载 .env 文件（本地测试用）
@@ -108,12 +139,14 @@ def get_all_cookies():
     cookies_list = []
     single = os.environ.get('ZAIMANHUA_COOKIE')
     if single:
-        cookies_list.append(('默认账号', single))
+        label = _make_account_label('默认账号', single)
+        cookies_list.append((label, single))
     i = 1
     while True:
         cookie = os.environ.get(f'ZAIMANHUA_COOKIE_{i}')
         if cookie:
-            cookies_list.append((f'账号 {i}', cookie))
+            label = _make_account_label(f'账号 {i}', cookie)
+            cookies_list.append((label, cookie))
             i += 1
         else:
             break

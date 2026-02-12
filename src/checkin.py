@@ -10,6 +10,19 @@ PAGE_TIMEOUT = 60000  # 60秒
 CHECKIN_TASK_ID = 8  # "到此一游"签到任务
 
 
+def _make_account_label(default_label, cookie_str):
+    """从 Cookie 中提取用户名，生成带用户名的账号标签"""
+    try:
+        user_info = extract_user_info_from_cookies(cookie_str)
+        if isinstance(user_info, dict):
+            name = user_info.get('nickname') or user_info.get('username')
+            if name:
+                return f"{default_label} ({name})"
+    except Exception:
+        pass
+    return default_label
+
+
 def get_all_cookies():
     """获取所有账号的 Cookie"""
     load_dotenv()  # 自动加载 .env 文件（本地测试用）
@@ -19,14 +32,16 @@ def get_all_cookies():
     # 兼容单账号配置
     single = os.environ.get('ZAIMANHUA_COOKIE')
     if single:
-        cookies_list.append(('默认账号', single))
+        label = _make_account_label('默认账号', single)
+        cookies_list.append((label, single))
 
     # 支持多账号配置 ZAIMANHUA_COOKIE_1, _2, _3...
     i = 1
     while True:
         cookie = os.environ.get(f'ZAIMANHUA_COOKIE_{i}')
         if cookie:
-            cookies_list.append((f'账号 {i}', cookie))
+            label = _make_account_label(f'账号 {i}', cookie)
+            cookies_list.append((label, cookie))
             i += 1
         else:
             break
@@ -199,6 +214,16 @@ def main():
         print(f"\n{'='*40}")
         print(f"正在签到: {name}")
         print('='*40)
+
+        # 验证 Cookie 有效性
+        from utils import validate_cookie
+        is_valid, error_msg = validate_cookie(cookie_str)
+        if not is_valid:
+            print(f"[ERROR] Cookie 无效: {error_msg}")
+            print(f"请更新 {name} 的 Cookie")
+            all_success = False
+            continue
+
         success = checkin(cookie_str)
         if success:
             # 签到成功后领取积分

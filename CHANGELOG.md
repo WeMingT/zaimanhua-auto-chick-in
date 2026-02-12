@@ -5,6 +5,28 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.6.0] - 2026-02-11
+
+### Added
+
+- 日志显示账号真实用户名 (`src/utils.py`, `src/checkin.py`)
+  - 新增 `_make_account_label()` 从 Cookie 提取 nickname/username
+  - 日志标签格式：`默认账号 (张三)`、`账号 1 (李四)`
+- Cookie 失效检测 (`src/utils.py`)
+  - 新增 `validate_cookie()` 通过任务列表 API 验证 Cookie 有效性
+  - 所有脚本在执行任务前统一验证 Cookie
+  - Cookie 无效时输出明确错误信息并跳过该账号
+- 非零退出码支持 (`src/auto_read.py`, `src/lottery.py`)
+  - Cookie 失效或任务失败时以 exit code 1 退出
+  - 触发 GitHub Actions 内置失败通知邮件
+
+### Changed
+
+- `src/checkin.py`: `get_all_cookies()` 标签加入用户名，`main()` 加入 Cookie 验证
+- `src/comment.py`: `main()` 加入 Cookie 验证
+- `src/auto_read.py`: `run_auto_read()` 加入 Cookie 验证，`__main__` 加入 exit code
+- `src/lottery.py`: `main()` 加入 Cookie 验证 + 返回值，`__main__` 加入 exit code
+
 ## [1.5.0] - 2026-01-18
 
 ### Added
